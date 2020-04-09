@@ -1,3 +1,9 @@
+"""
+A special thanks to `dalmia` for his incredible work and his opensource
+implementations. You can find him on github (his repo is https://github.com/dalmia/udacity-deep-reinforcement-learning)
+
+"""
+
 import numpy as np
 import copy
 from collections import namedtuple, deque
