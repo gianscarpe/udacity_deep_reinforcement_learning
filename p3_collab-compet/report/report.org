@@ -89,7 +89,6 @@ For the experiment we used the following hyperparameters:
 | Episodes           |  5000 |
 |--------------------+-------|
 
-
 * Results
 :PROPERTIES:
 :CUSTOM_ID: sec:results
