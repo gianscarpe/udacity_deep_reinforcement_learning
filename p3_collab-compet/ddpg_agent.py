@@ -8,20 +8,11 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
-BUFFER_SIZE = int(1e6)  # replay buffer size
-BATCH_SIZE = 1024       # minibatch size
-GAMMA = 0.99            # discount factor
-TAU = 1e-3              # for soft update of target parameters
-LR_ACTOR = 1e-4         # learning rate of the actor
-LR_CRITIC = 1e-3        # learning rate of the critic
-WEIGHT_DECAY = 0   # L2 weight decay
-LEAKINESS = 0.01
-
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 class Agent():
-    def __init__(self, state_size, action_size, n_agents=1, seed=0):
+    def __init__(self, state_size, action_size, config, n_agents=1, seed=0):
         """Initialize an Agent object.
 
         Params
@@ -31,6 +22,7 @@ class Agent():
             n_agents: number of agents it will control in the environment
             seed (int): random seed
         """
+        self.config = config
         self.state_size = state_size
         self.action_size = action_size
         self.seed = np.random.seed(seed)
@@ -38,21 +30,23 @@ class Agent():
         self.n_agents = n_agents
 
         # Actor Network (w/ Target Network)
-        self.actor_local = Actor(state_size, action_size, leak=LEAKINESS, seed=seed).to(device)
-        self.actor_target = Actor(state_size, action_size, leak=LEAKINESS, seed=seed).to(device)
-        self.actor_optimizer = optim.Adam(self.actor_local.parameters(), lr=LR_ACTOR)
+        self.actor_local = Actor(state_size, action_size, leak=config['LEAKINESS'], seed=seed).to(device)
+        self.actor_target = Actor(state_size, action_size, leak=config['LEAKINESS'], seed=seed).to(device)
+        self.actor_optimizer = optim.Adam(self.actor_local.parameters(), lr=config['LR_ACTOR'])
 
         # Critic Network (w/ Target Network)
-        self.critic_local = Critic(state_size, action_size, leak=LEAKINESS, seed=seed).to(device)
-        self.critic_target = Critic(state_size, action_size, leak=LEAKINESS, seed=seed).to(device)
-        self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr=LR_CRITIC)
+        self.critic_local = Critic(state_size, action_size, leak=config['LEAKINESS'], seed=seed).to(device)
+        self.critic_target = Critic(state_size, action_size, leak=config['LEAKINESS'], seed=seed).to(device)
+        self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr=config['LR_CRITIC'])
 
         # Noise process
         self.noise = OUNoise(action_size, seed)
 
         # Replay memory
-        self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, seed)
-        self.timesteps = 0  
+        self.memory = ReplayBuffer(action_size, config['BUFFER_SIZE'], config['BATCH_SIZE'], seed)
+        self.timesteps = 0
+        self.config = config
+        
 
     def step(self, states, actions, rewards, next_states, dones):
         """ Given a batch of S,A,R,S' experiences, it saves them into the
@@ -63,10 +57,10 @@ class Agent():
         for i in range(self.n_agents):
             self.memory.add(states[i], actions[i], rewards[i], next_states[i], dones[i])
 
-        if (len(self.memory) > BATCH_SIZE) and (self.timesteps % 20 == 0):
+        if (len(self.memory) > self.config['BATCH_SIZE']) and (self.timesteps % 20 == 0):
             for _ in range(10):
                 experiences = self.memory.sample()
-                self.learn(experiences, GAMMA)
+                self.learn(experiences, self.config['GAMMA'])
 
     def act(self, states, add_noise=True):
         """ Given a list of states for each agent it returns the actions to be
@@ -103,33 +97,43 @@ class Agent():
         """
         states, actions, rewards, next_states, dones = experiences
 
-        # ---------------------------- update critic ---------------------------- #
-        # Get predicted next-state actions and Q values from target models
+        self.update_critic(states, actions, rewards, gamma, next_states, dones)
+        self.update_actor(states)
+        self.update_target_networks()
+
+
+    def update_critic(self, states, actions, rewards, gamma, next_states, dones):
+
         actions_next = self.actor_target(next_states)
         Q_targets_next = self.critic_target(next_states, actions_next)
         # Compute Q targets for current states (y_i)
+
         Q_targets = rewards + (gamma * Q_targets_next * (1 - dones))
+
         # Compute critic loss
         Q_expected = self.critic_local(states, actions)
         critic_loss = F.mse_loss(Q_expected, Q_targets)
+        
         # Minimize the loss
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
         self.critic_optimizer.step()
 
-        # ---------------------------- update actor ---------------------------- #
-        # Compute actor loss
+        
+    def update_actor(self, states):
         actions_pred = self.actor_local(states)
         actor_loss = -self.critic_local(states, actions_pred).mean()
-        # Minimize the loss
+        
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
         self.actor_optimizer.step()
 
-        # ----------------------- update target networks ----------------------- #
-        self.soft_update(self.critic_local, self.critic_target, TAU)
-        self.soft_update(self.actor_local, self.actor_target, TAU)
+        
+    def update_target_networks(self):
+        self.soft_update(self.critic_local, self.critic_target, self.config.TAU)
+        self.soft_update(self.actor_local, self.actor_target, self.config.TAU)
 
+        
     def soft_update(self, local_model, target_model, tau):
         """Soft update model parameters.
         θ_target = τ*θ_local + (1 - τ)*θ_target

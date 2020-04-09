@@ -40,7 +40,7 @@ least *0.5* is maintained for 100 epochs.
 
 #+CAPTION: Actor-critic approach
 #+LABEL:   fig:actor_critic
-[[../contents/actor_critic.png]]
+[[../contents/agentcritic.png]]
 
 We used an actor-critic approach to solve the environment. Actor-critic methods
 merges the idea of *policy-based* and *temporal-differences* in order to
@@ -83,10 +83,10 @@ For the experiment we used the following hyperparameters:
 | $\gamma$           |  0.99 |
 | $\tau$             |  1e-3 |
 | Actor lr           |  1e-4 |
-| Critic lr          |  3e-4 |
+| Critic lr          |  1e-3 |
 | Update every       |    20 |
 | Update times       |    10 |
-| Episodes           |   500 |
+| Episodes           |  5000 |
 |--------------------+-------|
 
 
@@ -97,13 +97,15 @@ For the experiment we used the following hyperparameters:
 
 In figure [[fig:result]] it's presented the algorithm result per episode. In
 particular, we were able to solve the environment in less then 50 epochs. The
-scores kept growing until an optimal maximum of 35, probably due to limited time
-play per episode. The learning has been stable until 350 when it starts reaching
-a local minimal. Different approaches and improvements are discussed in section [[#sec:conclusion]]. 
+scores kept growing until an optimal maximum of 2.0, probably due to limited
+time play per episode. The learning was flat until when it started reaching a
+local maximum. There was some noise in the precess, probably due the multi-agent
+environment. Different approaches and improvements are discussed in section
+[[#sec:conclusion]].
 
 #+Caption: Learning scores per epoch
 #+LABEL:   fig:result
-[[../contents/solved.png]]o
+[[../contents/solved.png]]
 
 * Conclusion and further
 :PROPERTIES:
@@ -113,9 +115,9 @@ We developed a pipeline in order to solve `tennis` environment with Deep
 Reinforcement Learning. In particular, we implemented *Deep Deterministic Policy
 Gradient* following the paper specification. DDPG is an off-policy actor-critic
 algorithm which has proven stability and optimal results in multiple tasks. We
-got the algorithm to hack the environment in less then 500 epochs. We believe
-better results in terms of training speed could be achievable using more
+believe better results in terms of training speed could be achievable using more
 advances algorithms like PPO for continuous action. As a matter of fact, PPO
-could better benefit from the parallelism offered by the environment. We would
-consider integrating *Prioritized Replay* as a way to optimally sample
-mini-batches from the queue. 
+could better benefit from the parallelism offered by the environment. We can
+improve the experience sampling by using a priority based sampling technique to
+help the agent with the exploration/exploitation problem. More advance solutions
+could involve D4PG algorithm or Hindsight Experience replay. 

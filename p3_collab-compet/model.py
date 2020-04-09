@@ -17,7 +17,7 @@ class Actor(nn.Module):
             leak: amount of leakiness in leaky relu
         """
         super(Actor, self).__init__()
-        self.lbeak = leak
+        self.leak = leak
         self.seed = torch.manual_seed(seed)
 
         self.fc1 = nn.Linear(state_size, fc1)
@@ -43,10 +43,10 @@ class Actor(nn.Module):
 
 
 class Critic(nn.Module):
-    def __init__(self, state_size, action_size, fc1=256, fc2=128, fc3=128, leak=0.01, seed=0):
-        """Initialize parameters and build model.
+    def __init__(self, state_size, action_size, fc1=256, fc2=128, fc3=128,
+    leak=0.01, seed=0):
+        """
         Params
-        ======
             state_size (int): Dimension of each state
             action_size (int): Dimension of each action
             seed (int): Random seed
@@ -65,7 +65,7 @@ class Critic(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        """ Initilaize the weights using He et al (2015) weights """
+        
         torch.nn.init.kaiming_normal_(self.fcs1.weight.data, a=self.leak, mode='fan_in')
         torch.nn.init.kaiming_normal_(self.fc2.weight.data, a=self.leak, mode='fan_in')
         torch.nn.init.uniform_(self.fc3.weight.data, -3e-3, 3e-3)
