@@ -1,0 +1,121 @@
+#+Title: Project 3 - Deep reinforcement learning - Collaboration and competition
+#+Author: Gianluca Scarpellini (gianluca@scarpellini.dev)
+
+* Introduction
+:PROPERTIES:
+:CUSTOM_ID: sec:introduction
+:END:
+
+
+Deep Reinforcement Learning is today becoming a relevant field of research. The
+current work aims to evaluate the ability of value-based methods of solving a
+simple task in a constrained environment. In particular, we implemented Deep DPG
+algorithm as presented during Udacity "Deep Reinforcement Learning" as well as
+in the original paper for 2 competitive agents. We describe the environment in
+section [[#sec:environment]]. A more in depth explanation of the approach is
+presented in section [[#sec:implementation]]. In section [[#sec:results]] we comment the
+results obtained with the algorithm. Finally, we take our conclusions in section
+[[#sec:conclusion]].
+
+
+* Environment and task
+:PROPERTIES:
+:CUSTOM_ID: sec:environment
+:END:
+The presented project is developed in order to solve the "Tennis" environment
+with 2 agents in competition. The tasks consists in throwing the ball to
+opposing competitor field. The reward is +0.1 for each right hit and a reward
+of -0.01 for the wrong ones. The agents goal is to keep the ball in play as long
+as possible. The observation space consists of 24 variables (position and
+velocity of ball and racket). The action space is continuous and consists of a
+vector of 2 continuous value corresponding to left-right movement and jump. The
+task is episodic. The environment is considered solved if an average score of at
+least *0.5* is maintained for 100 epochs.
+
+* Algorithm and Implementation
+:PROPERTIES:
+:CUSTOM_ID: sec:implementation
+:END:
+
+
+#+CAPTION: Actor-critic approach
+#+LABEL:   fig:actor_critic
+[[../contents/actor_critic.png]]
+
+We used an actor-critic approach to solve the environment. Actor-critic methods
+merges the idea of *policy-based* and *temporal-differences* in order to
+mitigate their issues both in variance and bias. DDPG exploits 2 different
+function approximators (such as neural networks, CNN, ...). The policy produces
+by the actor is *deterministic*: the action per state is the optimal one. The
+critic evaluates the deterministic policy and updates its parameters using
+TD-error. The *deterministic policy gradient algorithm* is employed to update
+the actor weights following equation in figure [[fig:equation]].
+
+
+#+CAPTION: DPG equation
+#+LABEL:   fig:equation
+[[../contents/dpg.png]]
+
+** Improvements
+We employed a few improvements proposed in the original DDPG article in order to
+stabilize training.
+
+- *Experience Replay*: The experience replay was originally proposed for Deep
+  Q-learning approach. It employs a buffer of finite size in order to sample
+  randomly from the state-action-rewards tuple space. Independent mini-batches
+  favor a more stable training. The states of both agents are pushed in the same
+  buffer for more stability.
+- *Soft updates*: In DDPG the target networks are updated using a *soft copy* of
+  the old weights. The result is a more smooth updating of neural networks
+  parameters.
+- *Parallelism*: We adapt DDPG in order to exploit a multi-agent
+  environment. The behavior of the algorithm is the same; the experience buffer
+  and the updates benefit from the high independence of the experiences coming
+  from different parallel agent.
+
+** Hyperparameters
+For the experiment we used the following hyperparameters:
+
+| Hyperparameter     | Value |
+|--------------------+-------|
+| Replay buffer size |   1e6 |
+| Batch size         |  1024 |
+| $\gamma$           |  0.99 |
+| $\tau$             |  1e-3 |
+| Actor lr           |  1e-4 |
+| Critic lr          |  3e-4 |
+| Update every       |    20 |
+| Update times       |    10 |
+| Episodes           |   500 |
+|--------------------+-------|
+
+
+* Results
+:PROPERTIES:
+:CUSTOM_ID: sec:results
+:END:
+
+In figure [[fig:result]] it's presented the algorithm result per episode. In
+particular, we were able to solve the environment in less then 50 epochs. The
+scores kept growing until an optimal maximum of 35, probably due to limited time
+play per episode. The learning has been stable until 350 when it starts reaching
+a local minimal. Different approaches and improvements are discussed in section [[#sec:conclusion]]. 
+
+#+Caption: Learning scores per epoch
+#+LABEL:   fig:result
+[[../contents/solved.png]]o
+
+* Conclusion and further
+:PROPERTIES:
+:CUSTOM_ID: sec:conclusion
+:END:
+We developed a pipeline in order to solve `tennis` environment with Deep
+Reinforcement Learning. In particular, we implemented *Deep Deterministic Policy
+Gradient* following the paper specification. DDPG is an off-policy actor-critic
+algorithm which has proven stability and optimal results in multiple tasks. We
+got the algorithm to hack the environment in less then 500 epochs. We believe
+better results in terms of training speed could be achievable using more
+advances algorithms like PPO for continuous action. As a matter of fact, PPO
+could better benefit from the parallelism offered by the environment. We would
+consider integrating *Prioritized Replay* as a way to optimally sample
+mini-batches from the queue. 
