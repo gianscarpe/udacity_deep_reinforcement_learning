@@ -1,4 +1,4 @@
-% Created 2020-04-09 Thu 22:32
+% Created 2020-04-10 Fri 06:20
 % Intended LaTeX compiler: pdflatex
 \documentclass[11pt]{article}
 \usepackage[utf8x]{inputenc}
@@ -32,20 +32,20 @@
 
 
 \section{Introduction}
-\label{sec:orgcfa22a6}
+\label{sec:orge7a8451}
 Deep Reinforcement Learning is today becoming a relevant field of research. The
 current work aims to evaluate the ability of value-based methods of solving a
 simple task in a constrained environment. In particular, we implemented Deep DPG
 algorithm as presented during Udacity "Deep Reinforcement Learning" as well as
 in the original paper for 2 competitive agents. We describe the environment in
-section \ref{sec:org5ff204a}. A more in depth explanation of the approach is
-presented in section \ref{sec:orgcd4bf78}. In section \ref{sec:org679590f} we comment the
+section \ref{sec:orgf68bd06}. A more in depth explanation of the approach is
+presented in section \ref{sec:orgc2b7730}. In section \ref{sec:org09be8dc} we comment the
 results obtained with the algorithm. Finally, we take our conclusions in section
-\ref{sec:org344ed33}.
+\ref{sec:orgbd1153e}.
 
 
 \section{Environment and task}
-\label{sec:org5ff204a}
+\label{sec:orgf68bd06}
 The presented project is developed in order to solve the "Tennis" environment
 with 2 agents in competition. The tasks consists in throwing the ball to
 opposing competitor field. The reward is +0.1 for each right hit and a reward
@@ -57,11 +57,11 @@ task is episodic. The environment is considered solved if an average score of at
 least \textbf{0.5} is maintained for 100 epochs.
 
 \section{Algorithm and Implementation}
-\label{sec:orgcd4bf78}
+\label{sec:orgc2b7730}
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=.9\linewidth]{../contents/agentcritic.png}
-\caption{\label{fig:orgb8e6bfa}Actor-critic approach}
+\caption{\label{fig:org3b240ea}Actor-critic approach}
 \end{figure}
 
 We used an actor-critic approach to solve the environment. Actor-critic methods
@@ -71,17 +71,17 @@ function approximators (such as neural networks, CNN, \ldots{}). The policy prod
 by the actor is \textbf{deterministic}: the action per state is the optimal one. The
 critic evaluates the deterministic policy and updates its parameters using
 TD-error. The \textbf{deterministic policy gradient algorithm} is employed to update
-the actor weights following equation in figure \ref{fig:org2db05e2}.
+the actor weights following equation in figure \ref{fig:orgcd6f1f9}.
 
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=.9\linewidth]{../contents/dpg.png}
-\caption{\label{fig:org2db05e2}DPG equation}
+\caption{\label{fig:orgcd6f1f9}DPG equation}
 \end{figure}
 
 \subsection{Improvements}
-\label{sec:org2a29a16}
+\label{sec:orge234b3b}
 We employed a few improvements proposed in the original DDPG article in order to
 stabilize training.
 
@@ -101,7 +101,7 @@ from different parallel agent.
 \end{itemize}
 
 \subsection{Hyperparameters}
-\label{sec:org3506835}
+\label{sec:org38f7ec7}
 For the experiment we used the following hyperparameters:
 
 \begin{center}
@@ -121,25 +121,72 @@ Episodes & 5000\\
 \end{tabular}
 \end{center}
 
+\subsection{Neural Network}
+\label{sec:org9460d00}
+I implemented 2 neural networks as function approximators for both Actor and
+Critic as summarized in tables \ref{tab:org266b26d} and \ref{tab:orgeb9921d}. The actor neural network is a Multi-layer perceptron with 1 hidden
+layer. I used \textbf{leaky relu} as non-linearity for the input layer and the hidden
+layer, while I used \textbf{tanh} for the ouputs of the last layer.  The critic network
+is a Multi-layer perceptron too with multiple-input. I decided to insert a Batch
+Normalization layer as initially proposed by the Deep Q-learning algorithm in
+order to normalize the observations input. The first layer output is
+concatenated with the actions input in order to merge the mutual information. 2
+more hidden layers followed by leaky relu further modified the input space. The
+linear layer as output is returned without non-linearity.
+
+
+
+
+\begin{table}[htbp]
+\caption{\label{tab:org266b26d}Actor network}
+\centering
+\begin{tabular}{lr}
+\hline
+Actort Network & Value\\
+\hline
+Fc1 & 256\\
+fc2 & 128\\
+\hline
+\end{tabular}
+\end{table}
+
+
+\begin{table}[htbp]
+\caption{\label{tab:orgeb9921d}Critic network}
+\centering
+\begin{tabular}{lr}
+\hline
+Critic Network & Value\\
+\hline
+fc1 & 256\\
+fc2 & 128\\
+fc3 & 128\\
+\hline
+\end{tabular}
+\end{table}
+
+
+
+
 
 \section{Results}
-\label{sec:org679590f}
-In figure \ref{fig:orgd6d4ae0} it's presented the algorithm result per episode. In
+\label{sec:org09be8dc}
+In figure \ref{fig:org15b44d9} it's presented the algorithm result per episode. In
 particular, we were able to solve the environment in less then 50 epochs. The
 scores kept growing until an optimal maximum of 2.0, probably due to limited
 time play per episode. The learning was flat until when it started reaching a
 local maximum. There was some noise in the precess, probably due the multi-agent
 environment. Different approaches and improvements are discussed in section
-\ref{sec:org344ed33}.
+\ref{sec:orgbd1153e}.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=.9\linewidth]{../contents/solved.png}
-\caption{\label{fig:orgd6d4ae0}Learning scores per epoch}
+\caption{\label{fig:org15b44d9}Learning scores per epoch}
 \end{figure}
 
 \section{Conclusion and further}
-\label{sec:org344ed33}
+\label{sec:orgbd1153e}
 We developed a pipeline in order to solve `tennis` environment with Deep
 Reinforcement Learning. In particular, we implemented \textbf{Deep Deterministic Policy
 Gradient} following the paper specification. DDPG is an off-policy actor-critic

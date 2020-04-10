@@ -89,6 +89,45 @@ For the experiment we used the following hyperparameters:
 | Episodes           |  5000 |
 |--------------------+-------|
 
+** Neural Network
+I implemented 2 neural networks as function approximators for both Actor and
+Critic as summarized in tables [[tab:actor]] and [[tab:critic]]. The actor neural network is a Multi-layer perceptron with 1 hidden
+layer. I used *leaky relu* as non-linearity for the input layer and the hidden
+layer, while I used *tanh* for the ouputs of the last layer.  The critic network
+is a Multi-layer perceptron too with multiple-input. I decided to insert a Batch
+Normalization layer as initially proposed by the Deep Q-learning algorithm in
+order to normalize the observations input. The first layer output is
+concatenated with the actions input in order to merge the mutual information. 2
+more hidden layers followed by leaky relu further modified the input space. The
+linear layer as output is returned without non-linearity.
+
+
+
+
+#+LABEL:   tab:actor
+#+CAPTION: Actor network
+|----------------+-------|
+| Actort Network | Value |
+|----------------+-------|
+| Fc1            |   256 |
+| fc2            |   128 |
+|----------------+-------|
+
+
+#+LABEL:   tab:critic
+#+CAPTION: Critic network
+|----------------+-------|
+| Critic Network | Value |
+|----------------+-------|
+| fc1            |   256 |
+| fc2            |   128 |
+| fc3            |   128 |
+|----------------+-------|
+
+
+
+
+
 * Results
 :PROPERTIES:
 :CUSTOM_ID: sec:results
